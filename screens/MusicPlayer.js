@@ -25,24 +25,6 @@ import songs from '../model/Data';
 
 const {width,height}=Dimensions.get('window');
 
-const setupPlayer = async () => {
-  try {
-    await TrackPlayer.setupPlayer();
-    await TrackPlayer.updateOptions({
-      capabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.SkipToNext,
-        Capability.SkipToPrevious,
-        Capability.Stop,
-      ],
-    });
-    await TrackPlayer.add(songs);
-
-  }catch(e){
-    console.log(e);
-  }
-};
 
 const togglePayBack = async playBackState => {
   const currentTrack = await TrackPlayer.getCurrentTrack();
@@ -55,7 +37,6 @@ const togglePayBack = async playBackState => {
   }
 
 };
-
 const MusicPlayer = () => {
 
   const playBackState = usePlaybackState();
@@ -126,48 +107,68 @@ const MusicPlayer = () => {
     await TrackPlayer.skip(trackId);
   };
 
-  useEffect(() => {
-    setupPlayer();
-
-    scrollX.addListener(({value}) => {
-      //console.log('ScrollX:${value} | Device Width : ${width}');
-      const index=Math.round(value / width);
-      skipTo(index);
-      setSongIndex(index);
-
-      //console.log(index);
+useEffect(()=>{
+const setupPlayer = async () => {
+  try {
+    await TrackPlayer.setupPlayer();
+    await TrackPlayer.updateOptions({
+      capabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.SkipToNext,
+        Capability.SkipToPrevious,
+        Capability.Stop,
+      ],
     });
-    return () => {
-      //scrollX.removeAllListeners();
-      TrackPlayer.destroy();
-    };
-  },[]);
+    await TrackPlayer.add(songs);
 
-  const skipToNext = () => {
-    songSlider.current.scrollToOffset({
-      offset : (songIndex + 1) * width,
-    });
+  }catch(e){
+    console.log(e);
+  }
+};
 
-  };
+const initializePlayer = async () => {
+  await setupPlayer();
 
-  const skipToPrevious = () => {
-    songSlider.current.scrollToOffset({
-      offset : (songIndex - 1) * width,
-    })
+scrollX.addListener(({value})=>{
+const index = Math.round(value/width);
+skipTo(index);
+setSongIndex(index)  
+})
+};
+initializePlayer();
 
-  };
+return () => {
+  //scrollX.removeAllListeners();
+  TrackPlayer.destroy();
+};
+},[]);
 
-  const renderSongs=({item,index})=>{
-    return (
-      <Animated.View style={styles.mainImageWrapper}>
-        <View style={[styles.imageWrapper,styles.elevation]}>
-          <Image source={trackArtWork}
-          style={styles.musicImage} 
-          />
-       </View>
-      </Animated.View>
-    );
-  };
+const skipToNext = () => {
+  songSlider.current.scrollToOffset({
+    offset : (songIndex + 1) * width,
+  });
+
+};
+
+const skipToPrevious = () => {
+  songSlider.current.scrollToOffset({
+    offset : (songIndex - 1) * width,
+  })
+
+};
+
+const renderSongs=({item,index})=>{
+  return (
+    <Animated.View style={styles.mainImageWrapper}>
+      <View style={[styles.imageWrapper,styles.elevation]}>
+        <Image source={trackArtWork}
+        style={styles.musicImage} 
+        />
+     </View>
+    </Animated.View>
+  );
+};
   return (
     <SafeAreaView style={styles.container}>
 
@@ -220,10 +221,10 @@ const MusicPlayer = () => {
           {/* Progress Durations */}
           <View style={styles.progressLevelDuration}>
             <Text style ={styles.progressLabelText}>
-              {new Date(progress.position * 1000).toLocaleTimeString().substring(3,8)}
+              {new Date(progress.position * 1000).toLocaleTimeString().substring(15,4)}
             </Text>
             <Text style ={styles.progressLabelText}>
-            {new Date((progress.duration - progress.position) * 1000).toLocaleTimeString().substring(3,8)}
+            {new Date((progress.duration - progress.position) * 1000).toLocaleTimeString().substring(15,4)}
             </Text>
           </View>
         </View>
@@ -309,8 +310,8 @@ const styles=StyleSheet.create({
     
     },
     imageWrapper:{
-      width:200,
-      height:250,
+      width:250,
+      height:350,
       marginBottom:20,
       marginTop:20
     
@@ -339,6 +340,7 @@ const styles=StyleSheet.create({
       fontWeight:'600',
       textAlign:'center',
       color:'#EEEEEE',
+      marginBottom:15,
       fontFamily:'DancingScript-Regular'
     },
     songArtist:{
